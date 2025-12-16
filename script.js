@@ -179,10 +179,11 @@ document.head.appendChild(style);
 function updateUptime() {
     const uptimeElement = document.querySelector('.uptime');
     if (uptimeElement) {
-        // Calculate days since January 1st of current year
-        const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+        // This is a demonstration metric showing days since deployment
+        // In production, you would track actual deployment date
+        const deploymentDate = new Date(new Date().getFullYear(), 0, 1);
         const now = new Date();
-        const diff = now - startOfYear;
+        const diff = now - deploymentDate;
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         
         uptimeElement.textContent = `Uptime: 100% (${days} days)`;
@@ -203,10 +204,20 @@ console.log('%c💻 Built with HTML, CSS, and vanilla JavaScript', 'color: #10b9
 // Performance Monitoring (Optional)
 // ========================================
 window.addEventListener('load', () => {
-    if ('performance' in window) {
-        const perfData = window.performance.timing;
-        const pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
-        console.log(`⚡ Page loaded in ${pageLoadTime}ms`);
+    if ('performance' in window && window.performance.getEntriesByType) {
+        try {
+            const perfData = window.performance.getEntriesByType('navigation')[0];
+            if (perfData) {
+                const pageLoadTime = perfData.loadEventEnd - perfData.fetchStart;
+                console.log(`⚡ Page loaded in ${Math.round(pageLoadTime)}ms`);
+            }
+        } catch (e) {
+            // Fallback for older browsers
+            if (window.performance.timing) {
+                const pageLoadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
+                console.log(`⚡ Page loaded in ${pageLoadTime}ms`);
+            }
+        }
     }
 });
 

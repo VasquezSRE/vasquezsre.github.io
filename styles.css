@@ -267,6 +267,7 @@ section {
 
 .hero-title {
     margin-bottom: var(--spacing-sm);
+    color: var(--accent-primary);
     background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-tertiary) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
