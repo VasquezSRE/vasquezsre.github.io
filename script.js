@@ -1,4 +1,26 @@
 // ========================================
+// Utility: Throttle Function
+// ========================================
+function throttle(func, wait) {
+    let timeout;
+    let lastRan;
+    return function executedFunction(...args) {
+        if (!lastRan) {
+            func.apply(this, args);
+            lastRan = Date.now();
+        } else {
+            clearTimeout(timeout);
+            timeout = setTimeout(function() {
+                if ((Date.now() - lastRan) >= wait) {
+                    func.apply(this, args);
+                    lastRan = Date.now();
+                }
+            }, Math.max(wait - (Date.now() - lastRan), 0));
+        }
+    };
+}
+
+// ========================================
 // Smooth Scrolling for Navigation Links
 // ========================================
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -17,23 +39,51 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 });
 
 // ========================================
-// Navbar Background on Scroll
+// Consolidated Scroll Handler with Throttling
 // ========================================
-let lastScroll = 0;
 const navbar = document.querySelector('.navbar');
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+const hero = document.querySelector('.hero-content');
 
-window.addEventListener('scroll', () => {
+const handleScroll = throttle(() => {
     const currentScroll = window.pageYOffset;
     
-    // Add shadow when scrolled
+    // Navbar shadow
     if (currentScroll > 100) {
         navbar.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
     } else {
         navbar.style.boxShadow = 'none';
     }
     
-    lastScroll = currentScroll;
-});
+    // Active navigation link highlighting
+    let current = '';
+    const scrollPosition = currentScroll + 100;
+
+    sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.offsetHeight;
+        
+        if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+            current = section.getAttribute('id');
+        }
+    });
+
+    navLinks.forEach(link => {
+        link.style.color = '';
+        if (link.getAttribute('href') === `#${current}`) {
+            link.style.color = 'var(--accent-primary)';
+        }
+    });
+    
+    // Parallax effect for hero section
+    if (hero && currentScroll < window.innerHeight) {
+        hero.style.transform = `translateY(${currentScroll * 0.3}px)`;
+        hero.style.opacity = 1 - (currentScroll / window.innerHeight);
+    }
+}, 100);
+
+window.addEventListener('scroll', handleScroll, { passive: true });
 
 // ========================================
 // Intersection Observer for Fade-in Animations
@@ -60,32 +110,7 @@ document.querySelectorAll('.skill-category, .project-card, .timeline-item, .metr
     observer.observe(el);
 });
 
-// ========================================
-// Active Navigation Link Highlighting
-// ========================================
-const sections = document.querySelectorAll('section[id]');
-const navLinks = document.querySelectorAll('.nav-link');
 
-window.addEventListener('scroll', () => {
-    let current = '';
-    const scrollPosition = window.pageYOffset + 100;
-
-    sections.forEach(section => {
-        const sectionTop = section.offsetTop;
-        const sectionHeight = section.offsetHeight;
-        
-        if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-            current = section.getAttribute('id');
-        }
-    });
-
-    navLinks.forEach(link => {
-        link.style.color = '';
-        if (link.getAttribute('href') === `#${current}`) {
-            link.style.color = 'var(--accent-primary)';
-        }
-    });
-});
 
 // ========================================
 // Typing Effect for Hero Title (Optional)
@@ -154,12 +179,12 @@ document.head.appendChild(style);
 function updateUptime() {
     const uptimeElement = document.querySelector('.uptime');
     if (uptimeElement) {
-        const startDate = new Date('2024-01-01');
+        // Calculate days since January 1st of current year
+        const startOfYear = new Date(new Date().getFullYear(), 0, 1);
         const now = new Date();
-        const diff = now - startDate;
+        const diff = now - startOfYear;
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         
-        // Always show 100% but could be made dynamic
         uptimeElement.textContent = `Uptime: 100% (${days} days)`;
     }
 }
@@ -225,15 +250,4 @@ document.querySelectorAll('.skill-tag').forEach(tag => {
     });
 });
 
-// ========================================
-// Parallax Effect for Hero Section (Optional)
-// ========================================
-window.addEventListener('scroll', () => {
-    const scrolled = window.pageYOffset;
-    const hero = document.querySelector('.hero-content');
-    
-    if (hero && scrolled < window.innerHeight) {
-        hero.style.transform = `translateY(${scrolled * 0.3}px)`;
-        hero.style.opacity = 1 - (scrolled / window.innerHeight);
-    }
-});
+
